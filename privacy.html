@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="index,follow">
+  <title>Privacy Policy · Reel Desk</title>
+  <style>
+    :root{color-scheme:light;--ink:#18211c;--muted:#5b665f;--line:#dce4dd;--green:#176b3a;--paper:#fff;--wash:#f4f7f4}
+    *{box-sizing:border-box}body{margin:0;background:var(--wash);color:var(--ink);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    main{max-width:800px;margin:56px auto;padding:40px;background:var(--paper);border:1px solid var(--line);border-radius:16px}
+    .brand{color:var(--green);font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}h1{font-size:36px;line-height:1.2;margin:12px 0 4px}h2{font-size:20px;margin:30px 0 8px}p,li{color:#303a33}small,.muted{color:var(--muted)}a{color:var(--green)}ul{padding-left:22px}
+    @media(max-width:600px){main{margin:16px;padding:24px;border-radius:10px}h1{font-size:30px}}
+  </style>
+</head>
+<body>
+<main>
+  <div class="brand">Reel Desk · Instagram comment automation</div>
+  <h1>Privacy Policy</h1>
+  <p class="muted">Template — replace before deployment</p>
+  <p>This is a privacy policy template. Replace operator, account, contact, retention, and provider details to accurately describe your deployment before publishing or using this page.</p>
+
+  <h2>Information processed</h2>
+  <p>When Meta sends a comment webhook for a configured Reel, the service processes the comment text, comment ID, Reel ID, commenter’s Instagram-scoped ID (and username if Meta includes it), and the event time. The commenter ID is used only to ignore comments made by the account owner; the service does not store the commenter ID or username. It stores an event record only when the comment matches that Reel’s enabled keyword rule. The record contains up to 1,000 characters of comment text, the comment ID, Reel ID, event time, delivery status, and limited diagnostic detail if delivery fails. The event record prevents duplicate replies and appears in the account owner’s activity view.</p>
+  <p>The service also stores the Reel owner’s automation rules, including the Reel ID, trigger keywords, reply text, and whether the rule is enabled.</p>
+
+  <h2>How information is used</h2>
+  <p>Matching comment information is used to send one private reply to that comment through Meta’s Instagram API and to record whether the request was accepted or failed. The service does not use comment information for advertising, profiling, or selling data.</p>
+
+  <h2>Retention and deletion</h2>
+  <p>Comment event records are set to expire after 30 days. AWS may take additional time to remove expired records. Automation rules remain until the account owner changes or removes them. To request deletion of information held by this service, contact the service operator; the account owner will locate and remove the matching event or rule from the service’s AWS storage. This request does not delete comments or messages held by Instagram.</p>
+
+  <h2>Service providers and security</h2>
+  <p>Meta provides the Instagram API and delivers the comment events. Amazon Web Services hosts the webhook and stores its configuration and event records. The service uses HTTPS for network requests, AWS Systems Manager SecureString values for credentials, DynamoDB encryption at rest, and authentication for its private dashboard. Information is not sold or shared for another company’s independent marketing.</p>
+
+  <h2>Cookies and analytics</h2>
+  <p>This policy page does not set cookies or use third-party analytics.</p>
+
+  <h2>Contact</h2>
+  <p>For privacy questions or deletion requests, contact the account owner using the contact information published by the operator.</p>
+</main>
+</body>
+</html>

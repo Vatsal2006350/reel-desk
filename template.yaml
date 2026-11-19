@@ -1,0 +1,120 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Instagram Reel comment private-reply webhook (Lambda, Function URL, DynamoDB).
+Resources:
+  CommentDmTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: expires
+        Enabled: true
+      Tags:
+        - Key: Project
+          Value: instagram-comment-dm
+
+  FunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: comment-dm-runtime
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:Scan
+                Resource: !GetAtt CommentDmTable.Arn
+              - Effect: Allow
+                Action: ssm:GetParameter
+                Resource:
+                  - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/comment-dm/ig-access-token
+                  - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/comment-dm/meta-app-secret
+                  - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/comment-dm/verify-token
+                  - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/comment-dm/dashboard-password
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub '${FunctionLogGroup.Arn}:*'
+
+  FunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${AWS::StackName}
+      RetentionInDays: 7
+
+  CommentDmFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub ${AWS::StackName}
+      Runtime: python3.12
+      Handler: lambda_handler.lambda_handler
+      Architectures:
+        - arm64
+      MemorySize: 256
+      Timeout: 30
+      Role: !GetAtt FunctionRole.Arn
+      Code:
+        S3Bucket: REPLACE_WITH_ARTIFACT_BUCKET
+        S3Key: REPLACE_WITH_ARTIFACT_KEY
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref CommentDmTable
+          IG_USER_ID: 'YOUR_INSTAGRAM_PROFESSIONAL_ACCOUNT_ID'
+          IG_API_VERSION: v26.0
+          IG_GRAPH_HOST: graph.facebook.com
+          IG_ACCESS_TOKEN_PARAM: /comment-dm/ig-access-token
+          IG_APP_SECRET_PARAM: /comment-dm/meta-app-secret
+          IG_WEBHOOK_VERIFY_TOKEN_PARAM: /comment-dm/verify-token
+          DASHBOARD_USER: YOUR_DASHBOARD_USERNAME
+          DASHBOARD_PASSWORD_PARAM: /comment-dm/dashboard-password
+          PUBLIC_BASE_URL: https://YOUR_FUNCTION_URL.lambda-url.YOUR_REGION.on.aws
+
+  FunctionUrl:
+    Type: AWS::Lambda::Url
+    Properties:
+      TargetFunctionArn: !GetAtt CommentDmFunction.Arn
+      AuthType: NONE
+
+  FunctionUrlPublicPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref CommentDmFunction
+      Action: lambda:InvokeFunctionUrl
+      Principal: '*'
+      FunctionUrlAuthType: NONE
+
+  FunctionUrlInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref CommentDmFunction
+      Action: lambda:InvokeFunction
+      Principal: '*'
+      InvokedViaFunctionUrl: true
+
+Outputs:
+  FunctionUrl:
+    Description: HTTPS endpoint for the private dashboard and Meta webhook.
+    Value: !GetAtt FunctionUrl.FunctionUrl
+  TableName:
+    Value: !Ref CommentDmTable
