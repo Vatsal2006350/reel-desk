@@ -66,8 +66,8 @@ def token():
     if sys.platform == "darwin":
         import subprocess
         result = subprocess.run(
-            ["security", "find-generic-password", "-a", "your-instagram-account", "-s",
-             os.environ.get("IG_KEYCHAIN_SERVICE", "reel-desk.instagram-access-token"), "-w"],
+            ["security", "find-generic-password", "-a", "vatsal.returns", "-s",
+             os.environ.get("IG_KEYCHAIN_SERVICE", "com.vatsal.video-edits.instagram-access-token"), "-w"],
             capture_output=True, text=True, timeout=5)
         if result.returncode == 0:
             return result.stdout.strip()
@@ -90,7 +90,7 @@ def api(method, path, payload=None):
 
 
 def list_media():
-    uid = os.environ.get("IG_USER_ID", "").strip()
+    uid = os.environ.get("IG_USER_ID", "17841439664252955").strip()
     if not uid:
         raise RuntimeError("IG_USER_ID is not configured")
     result = api("GET", f"{uid}/media?fields=id,caption,media_type,media_product_type,permalink,timestamp,thumbnail_url,media_url&limit=100")
@@ -124,7 +124,7 @@ def matching_rule(media_id, text):
         return None
     keywords = [k.strip().casefold() for k in rule["keywords"].split(",") if k.strip()]
     normalized = (text or "").casefold()
-    if not keywords or not any(re.search(r"(?<!\w)" + re.escape(k) + r"(?!\w)", normalized) for k in keywords):
+    if keywords and not any(re.search(r"(?<!\w)" + re.escape(k) + r"(?!\w)", normalized) for k in keywords):
         return None
     return rule
 
@@ -146,7 +146,7 @@ def receive_comment(comment_id, media_id, text):
         return
     con.close()
     try:
-        uid = os.environ.get("IG_USER_ID", "").strip()
+        uid = os.environ.get("IG_USER_ID", "17841439664252955").strip()
         # One reply per line is a variation; pick one at random so repeat
         # commenters don't all see identical wording.
         variations = [v.strip() for v in rule["reply"].splitlines() if v.strip()]
@@ -224,7 +224,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_response(401); self.send_header("WWW-Authenticate", 'Basic realm="Reel Desk"')
             self.send_header("Content-Length", "0"); self.end_headers(); return
         if u.path == "/api/status":
-            uid = os.environ.get("IG_USER_ID", "")
+            uid = os.environ.get("IG_USER_ID", "17841439664252955")
             subscribed = False
             if token() and os.environ.get("PUBLIC_BASE_URL"):
                 try:
@@ -234,7 +234,7 @@ class Handler(BaseHTTPRequestHandler):
                 except Exception:
                     pass
             return self.send_json({"connected": bool(token() and uid), "subscribed": subscribed,
-                "accountConfigured": bool(os.environ.get("IG_USER_ID", "")),
+                "accountConfigured": bool(os.environ.get("IG_USER_ID", "17841439664252955")),
                 "webhookConfigured": bool(os.environ.get("IG_APP_SECRET") and os.environ.get("IG_WEBHOOK_VERIFY_TOKEN")),
                 "publicUrlConfigured": bool(os.environ.get("PUBLIC_BASE_URL")),
                 "permissions": "Meta app permissions and app review must be confirmed in Meta Developers."})
@@ -292,8 +292,8 @@ class Handler(BaseHTTPRequestHandler):
                 reply = str(body.get("reply", "")).strip()[:1000]
                 public_reply = str(body.get("public_reply", "")).strip()[:1000]
                 enabled = bool(body.get("enabled"))
-                if not media_id or (enabled and (not keywords or not reply)):
-                    return self.send_json({"error": "Choose at least one keyword and write the private reply before activating."}, 400)
+                if not media_id or (enabled and not reply):
+                    return self.send_json({"error": "Write the private reply before activating."}, 400)
                 con = db()
                 con.execute("INSERT INTO rules(media_id,enabled,keywords,reply,public_reply,updated) VALUES(?,?,?,?,?,?) "
                             "ON CONFLICT(media_id) DO UPDATE SET enabled=excluded.enabled,keywords=excluded.keywords,reply=excluded.reply,public_reply=excluded.public_reply,updated=excluded.updated",
@@ -306,7 +306,7 @@ class Handler(BaseHTTPRequestHandler):
             if not os.environ.get("PUBLIC_BASE_URL") or not os.environ.get("IG_APP_SECRET") or not os.environ.get("IG_WEBHOOK_VERIFY_TOKEN"):
                 return self.send_json({"error": "Set the public HTTPS callback, app secret, and webhook verify token before subscribing."}, 400)
             try:
-                uid = os.environ.get("IG_USER_ID", "")
+                uid = os.environ.get("IG_USER_ID", "17841439664252955")
                 result = api("POST", f"{uid}/subscribed_apps", {"subscribed_fields": "comments"})
                 return self.send_json({"ok": True, "result": result})
             except Exception as e:

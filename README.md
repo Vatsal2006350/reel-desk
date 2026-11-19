@@ -4,7 +4,7 @@ A self-hosted dashboard for keyword-triggered Instagram Reel comment replies. Ru
 
 ## Features
 
-- Choose a Reel, whole-word keyword, and private reply in a dashboard
+- Choose a Reel, optional whole-word keywords, and private reply in a dashboard
 - Receive signed Meta comment webhooks
 - Send one private reply per matching comment and avoid duplicate sends
 - Optional public comment reply after the private reply succeeds
@@ -46,7 +46,7 @@ The template is a starting point, not a turnkey production deployment. Confirm M
 
 ## Configure a Reel rule
 
-In the dashboard, enable a rule for a Reel, enter whole-word keywords separated by commas, and write the private reply. The service only sends the first private reply permitted by Meta for a matching comment. Failed or uncertain sends are recorded and not retried to avoid duplicate messages. A recipient may need to interact before a normal conversation can continue.
+In the dashboard, enable a rule for a Reel and write the private reply. Enter whole-word keywords separated by commas to filter comments, or leave the keyword field empty to match every comment on that Reel. Add an optional public acknowledgment; it is posted only after the private reply request succeeds. The service only sends the first private reply permitted by Meta for a matching comment. Failed or uncertain sends are recorded and not retried to avoid duplicate messages. A recipient may need to interact before a normal conversation can continue.
 
 ## Data and privacy
 

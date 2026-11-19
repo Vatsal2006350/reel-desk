@@ -119,7 +119,7 @@ def matching_rule(media_id, text):
         return None
     keywords = [k.strip().casefold() for k in rule.get("keywords", "").split(",") if k.strip()]
     normalized = (text or "").casefold()
-    if not keywords or not any(re.search(r"(?<!\w)" + re.escape(k) + r"(?!\w)", normalized) for k in keywords):
+    if keywords and not any(re.search(r"(?<!\w)" + re.escape(k) + r"(?!\w)", normalized) for k in keywords):
         return None
     return rule
 
@@ -307,8 +307,8 @@ def handler(event, context=None):
                                             ConsistentRead=True).get("Item", {})
                 public_reply = existing.get("public_reply", "")
             enabled = bool(body.get("enabled"))
-            if not media_id or (enabled and (not keywords or not reply)):
-                return response(400, {"error": "Choose at least one keyword and write the private reply before activating."})
+            if not media_id or (enabled and not reply):
+                return response(400, {"error": "Write the private reply before activating."})
             table().put_item(Item={"PK": f"RULE#{media_id}", "SK": "RULE", "media_id": media_id,
                                    "enabled": enabled, "keywords": keywords, "reply": reply,
                                    "public_reply": public_reply, "updated": int(time.time())})
